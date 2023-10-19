@@ -11,6 +11,8 @@ export default class Play extends Phaser.Scene {
   spinner?: Phaser.GameObjects.Shape;
 
   rotationSpeed = Phaser.Math.PI2 / 1000; // radians per millisecond
+  movingSpeed!: number;
+  onFire: boolean = false;
 
   constructor() {
     super("play");
@@ -30,6 +32,7 @@ export default class Play extends Phaser.Scene {
     this.fire = this.#addKey("F");
     this.left = this.#addKey("LEFT");
     this.right = this.#addKey("RIGHT");
+    this.movingSpeed = (this.game.config.width as number) * 0.001;
 
     this.starfield = this.add
       .tileSprite(
@@ -40,27 +43,40 @@ export default class Play extends Phaser.Scene {
         "starfield",
       )
       .setOrigin(0, 0);
-
-    this.spinner = this.add.rectangle(100, 100, 50, 50, 0xff0000);
+    this.spinner = this.add.rectangle(
+      100,
+      (this.game.config.height as number) * 0.8,
+      50,
+      50,
+      0xef2bb6,
+    );
   }
 
   update(_timeMs: number, delta: number) {
     this.starfield!.tilePositionX -= 4;
 
     if (this.left!.isDown) {
-      this.spinner!.rotation -= delta * this.rotationSpeed;
+      this.spinner!.x -= delta * this.movingSpeed;
     }
     if (this.right!.isDown) {
-      this.spinner!.rotation += delta * this.rotationSpeed;
+      this.spinner!.x += delta * this.movingSpeed;
     }
 
-    if (this.fire!.isDown) {
+    if (this.fire!.isDown && !this.onFire) {
+      this.onFire = true;
       this.tweens.add({
         targets: this.spinner,
-        scale: { from: 1.5, to: 1 },
+        y: 100,
         duration: 300,
+        yoyo: true,
         ease: Phaser.Math.Easing.Sine.Out,
       });
+    }
+    if (
+      this.onFire &&
+      this.spinner!.y >= (this.game.config.height as number) * 0.8
+    ) {
+      this.onFire = false;
     }
   }
 }
