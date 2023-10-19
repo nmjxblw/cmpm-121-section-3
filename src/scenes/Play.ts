@@ -3,6 +3,7 @@ import * as Phaser from "phaser";
 import starfieldUrl from "/assets/starfield.png";
 
 export default class Play extends Phaser.Scene {
+  private enemies: Enemy[] = [];
   fire?: Phaser.Input.Keyboard.Key;
   left?: Phaser.Input.Keyboard.Key;
   right?: Phaser.Input.Keyboard.Key;
@@ -50,15 +51,17 @@ export default class Play extends Phaser.Scene {
       50,
       0xef2bb6,
     );
+
+    this.enemies = [new Enemy(this, 480, 100, starfieldUrl, 100)];
   }
 
   update(_timeMs: number, delta: number) {
     this.starfield!.tilePositionX -= 4;
 
-    if (this.left!.isDown) {
+    if (this.left!.isDown && !this.onFire) {
       this.spinner!.x -= delta * this.movingSpeed;
     }
-    if (this.right!.isDown) {
+    if (this.right!.isDown && !this.onFire) {
       this.spinner!.x += delta * this.movingSpeed;
     }
 
@@ -82,5 +85,41 @@ export default class Play extends Phaser.Scene {
         },
       });
     }
+
+    this.enemies.forEach((enemy) => {
+      enemy.update();
+    });
+  }
+}
+
+class Enemy {
+  private scene: Phaser.Scene;
+  private sprite: Phaser.GameObjects.Sprite;
+  private speed: number;
+
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    texture: string,
+    speed: number,
+  ) {
+    this.scene = scene;
+    this.speed! = speed;
+    this.sprite! = scene.add.sprite(x, y, texture);
+
+    scene.physics.world!.enable(this.sprite!);
+
+    this.sprite.body!.velocity.x = -speed;
+  }
+
+  update() {
+    if (this.sprite.x < -this.sprite.width) {
+      this.sprite.x = this.scene.game.config.width as number;
+    }
+  }
+
+  destroy() {
+    this.sprite.destroy();
   }
 }
