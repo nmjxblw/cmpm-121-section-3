@@ -68,15 +68,19 @@ export default class Play extends Phaser.Scene {
         targets: this.spinner,
         y: 100,
         duration: 300,
-        yoyo: true,
         ease: Phaser.Math.Easing.Sine.Out,
+        onComplete: () => {
+          this.tweens.add({
+            targets: this.spinner,
+            y: (this.game.config.height as number) * 0.8,
+            duration: 300,
+            ease: Phaser.Math.Easing.Sine.Out,
+            onComplete: () => {
+              this.onFire = false;
+            },
+          });
+        },
       });
-    }
-    if (
-      this.onFire &&
-      this.spinner!.y >= (this.game.config.height as number) * 0.8
-    ) {
-      this.onFire = false;
     }
   }
 }
